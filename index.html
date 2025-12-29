@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subnational Politics Project (SPP)</title>
+    <link rel="icon" type="image/svg+xml" href="spp_logo_tab_v2.svg">
+    <!-- Font Awesome for Chevrons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --gray: #4D4D4D;
+            --magenta: #E5007D;
+            --purple: #722464;
+            --orange: #FFA92A;
+            --white: #ffffff;
+            --transition-speed: 0.8s;
+        }
+
+        * { 
+            box-sizing: border-box; 
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden; /* Force horizontal lock */
+            position: relative;
+            -webkit-overflow-scrolling: touch; /* Smooth scroll for iOS */
+        }
+
+
+        body, html {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            overflow: hidden; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: var(--white);
+        }
+
+        /* Dashboard Container */
+        .dash-container {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
+            overflow: hidden; /* Prevent the container from growing */
+        }
+        iframe {
+            width: 1px;       /* Hack for iOS */
+            min-width: 100%;  /* Hack for iOS */
+            height: 100%;
+            border: none;
+        }
+        /* Layers Base */
+        .layer {
+            position: absolute;
+            top: 0; left: 0;
+            right: 0;   /* Pin to right */
+            bottom: 0;  /* Pin to bottom */
+            width: 100%; height: 100%;
+            background: var(--white);
+            transition: transform var(--transition-speed) cubic-bezier(0.8, 0, 0.2, 1);
+        }
+
+        /* Hero Layer */
+        #hero-layer {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: var(--white);
+            z-index: 1000;
+            transition: transform var(--transition-speed) cubic-bezier(0.8, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+        }
+        #hero-layer.hidden {
+            transform: translateY(-100%);
+            pointer-events: none; /* Prevents clicking links while hidden */
+        }
+
+        /* About Layer */
+        #about-layer {
+            position: absolute; /* Relative to hero-layer now */
+            top: 0; 
+            left: 0;
+            width: 100%; 
+            height: 100%;
+            z-index: 1100;
+
+            /* The Fade Logic */
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.98); /* Slight shrink for 'emerge' effect */
+            transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.165, 0.84, 0.44, 1), visibility 0.5s;
+
+            overflow-y: auto;
+            background: #fff;
+            color: var(--gray);
+            padding-top: 40px;    
+        }
+
+        /* The Active State */
+        #about-layer.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1); /* Returns to normal size */
+        }
+
+        /* Top Bar */
+        .top-nav {            
+            padding: 30px 60px 15px ;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative; /* Crucial for z-index to work */
+            z-index: 1200;      /* Higher than about-layer (1100) */
+            background-color: var(--white);
+            
+        }
+        .logo-spp { height: 60px; width: auto; cursor: pointer; }
+        .nav-links { color: var(--orange); font-weight: bold; font-size: 1.1rem; }
+        .nav-links span { margin-left: 25px; cursor: pointer; transition: opacity 0.2s; }
+        .nav-links span:hover { opacity: 0.7; }
+        .nav-links span.active {
+           color: var(--magenta);
+            text-decoration: underline;
+        }
+
+        /* Hero Body */
+        .hero-body {
+            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; 
+        }
+
+        .main-column {
+            position: relative;
+            width: 66.66%; 
+            padding-left: 8%;
+            padding-top: 5vh;    
+            padding-bottom: 10vh; 
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly; 
+            height: 70%; 
+            max-height: 600px; 
+        }
+
+        .text-overlay h2 {
+            font-size: clamp(1.1rem, 4.5vmin, 2.8rem);
+            line-height: 1.3;
+            color: #000;
+            margin: 0;
+            font-weight: 400;
+        }
+
+        .text-overlay strong { font-weight: 700; }
+
+        .footer-actions {
+            display: flex;
+            justify-content: flex-start; 
+            gap: 30px;
+        }
+
+        .btn-spp {
+            padding: 18px 45px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            background-color: var(--orange);
+            color: var(--white);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease, background 0.3s ease;
+        }
+        .btn-spp:hover { background-color: #f0951a; transform: translateY(-2px); }
+        .btn-outline { background-color: transparent; color: var(--orange); border: 2px solid var(--orange); box-shadow: none; }
+
+        /* Map */
+        .map-container {
+            position: absolute;
+            right: 0; bottom: 10%;
+            width: 50%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            pointer-events: none; 
+        }
+        .map-container img {
+            width: 100%; height: auto; max-height: 90vh; 
+            object-fit: contain; animation: mapFloat 6s ease-in-out infinite;
+        }
+
+        @keyframes mapFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+
+        /* Credit Footer */
+        .credit-footer {
+            position: absolute;
+            bottom: 30px; left: 60px;
+            font-size: 0.7rem; color: var(--gray);
+            z-index: 1002; opacity: 0.8;
+        }
+        .credit-footer a { color: var(--magenta); text-decoration: none; font-weight: bold; }
+        .credit-footer a:hover { color: var(--purple); text-decoration: underline; }
+
+        /* Drawer Puller */
+        .drawer-pull {
+            position: absolute;
+            bottom: -10%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--magenta);
+            border-radius: 0 0 15px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.4s ease;
+            pointer-events: auto;
+            z-index: 1001;
+        }
+
+        #hero-layer:not(.hidden) .drawer-pull { bottom: -50px; width: 100px; height: 50px; }
+        #hero-layer.hidden .drawer-pull { bottom: -10px; width: 50px; height: 10px; opacity: 0.8; animation: pulse-hint 2s ease-in-out infinite; }
+        #hero-layer.hidden .drawer-pull:hover { bottom: -40px; height: 40px; width: 100px; opacity: 1; background: var(--purple); animation: none; }
+
+        @keyframes pulse-hint { 0%, 100% { height: 10px; } 50% { height: 16px; } }
+
+        .drawer-pull::before, .drawer-pull::after { content: ""; position: absolute; width: 14px; height: 3px; background-color: white; border-radius: 2px; transition: opacity 0.3s ease, transform 0.4s ease; opacity: 0; }
+        #hero-layer:not(.hidden) .drawer-pull::before, #hero-layer:not(.hidden) .drawer-pull::after, .drawer-pull:hover::before, .drawer-pull:hover::after { opacity: 1; }
+        #hero-layer.hidden .drawer-pull::before { transform: translateX(-5px) rotate(-35deg); }
+        #hero-layer.hidden .drawer-pull::after { transform: translateX(5px) rotate(35deg); }
+        #hero-layer:not(.hidden) .drawer-pull::before { transform: translateX(-5px) rotate(35deg); }
+        #hero-layer:not(.hidden) .drawer-pull::after { transform: translateX(5px) rotate(-35deg); }
+
+        /* --- ABOUT LAYER STYLING --- */
+        .spp-container { 
+            max-width: 900px; 
+            margin: 0 auto; 
+            padding: 60px 20px 200px 20px; 
+        }
+        .kicker { color: var(--orange); text-transform: uppercase; letter-spacing: 0.12em; font-size: 24px; margin: 0 0 30px 0; font-weight: bold; }
+        
+        /*
+        .close-about { position: absolute; top: 40px; right: 60px; font-size: 1.5rem; cursor: pointer; color: var(--gray); z-index: 1200; }
+        */
+
+        /* --- UPDATED GO TOP BUTTON (Fixed Bottom Left) --- */
+        #go-top-btn {
+            position: fixed;
+            bottom: 40px;
+            right: 40px; /* Anchored to bottom left */
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: rgb(20, 20, 20); /* Neutral dark background */
+            border: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0px 0px 0px 4px rgba(255, 169, 42, 0.2);
+            cursor: pointer;
+            transition-duration: 0.3s;
+            overflow: hidden;
+            z-index: 2000; /* Ensure it stays above everything */
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        #go-top-btn.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .svgIcon {
+            width: 12px;
+            transition-duration: 0.3s;
+        }
+
+        .svgIcon path {
+            fill: white;
+        }
+
+        #go-top-btn:hover {
+            width: 140px;
+            border-radius: 50px;
+            transition-duration: 0.3s;
+            background-color: var(--orange);
+            align-items: center;
+        }
+
+        #go-top-btn:hover .svgIcon {
+            transition-duration: 0.3s;
+            transform: translateY(-200%);
+        }
+
+        #go-top-btn::before {
+            position: absolute;
+            bottom: -20px;
+            content: "Back to Top";
+            color: white;
+            font-size: 0px;
+            white-space: nowrap;
+        }
+
+        #go-top-btn:hover::before {
+            font-size: 13px;
+            opacity: 1;
+            bottom: unset;
+            transition-duration: 0.3s;
+        }
+
+        details.card { 
+            background: #fff; border: 1px solid #e6e6e6; border-radius: 12px; margin-bottom: 18px; 
+            overflow: visible; transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease; 
+        }
+        details.card:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.18); border-color: rgba(255,169,42,0.35); }
+        details.card[open] { box-shadow: 0 6px 14px rgba(0,0,0,0.12); border-color: rgba(255,169,42,0.45); }
+        
+        summary { list-style: none; cursor: pointer; padding: 20px 24px; display: flex; align-items: center; gap: 10px; outline: none; }
+        summary::-webkit-details-marker { display: none; }
+        .chev { margin-left: auto; transition: transform .15s ease; color: var(--gray); opacity: 0.6; }
+        details[open] .chev { transform: rotate(180deg); }
+        
+        .card-title { font-weight: 800; font-size: 18px; color: var(--purple); }
+        .card-body { padding: 0 24px 24px 24px; color: var(--gray); }
+        .spp-text { color: var(--gray); line-height: 1.6; text-align: justify; margin-bottom: 15px; }
+        .spp-hr { border: 0; height: 1px; background: linear-gradient(90deg, rgba(255,169,42,0), rgba(255,169,42,0.8), rgba(255,169,42,0)); margin: 20px 0; }
+        .spp-link { color: var(--magenta); text-decoration: none; font-weight: bold; }
+        .spp-link:hover { text-decoration: underline; }
+
+        /* Team Grid */
+        .team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 25px; text-align: center; margin-top: 20px; }
+        .team-card { 
+            background: #fff; border: 1px solid #e6e6e6; border-radius: 12px; padding: 20px; 
+            transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease; 
+        }
+        .team-card:hover { transform: translateY(-4px); box-shadow: 0 10px 22px rgba(0,0,0,0.18); border-color: rgba(255,169,42,0.45); }
+        .team-avatar { 
+            width: 120px; height: 120px; object-fit: cover; border-radius: 50%; margin-bottom: 15px; 
+            border: 2px solid rgba(255,169,42,0.6); filter: grayscale(100%); transition: filter .3s ease; 
+        }
+        .team-card:hover .team-avatar { filter: grayscale(0%); }
+        .collab-name { color: var(--gray); font-weight: 700; margin: 0 0 8px 0; font-size: 1.1rem; }
+        .pi-affil { font-size: 0.85rem; color: #666; line-height: 1.4; margin-top: 8px; }
+        
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; vertical-align: middle; margin-right: 6px; }
+        .badge-pi { background: var(--orange); color: #111; }
+        .badge-collab { background: rgba(114,36,100,0.12); color: var(--purple); border: 1px solid rgba(114,36,100,0.35); }
+        .badge-r_assist { background: rgba(33,150,243,0.12); color: #1565C0; border: 1px solid rgba(33,150,243,0.35); }
+        
+        .lnk-btn { 
+            display: inline-block; width: 22px; height: 22px; line-height: 22px; text-align: center; 
+            border-radius: 50%; background: #0A66C2; color: #fff; text-decoration: none; 
+            font-weight: 700; font-size: 11px; transition: filter .15s ease; vertical-align: middle; 
+        }
+        .lnk-btn:hover { filter: brightness(1.15); }
+
+        /* Figures */
+        .figure { margin: 25px 0; text-align: center; }
+        .figure img { max-width: 100%; height: auto; border-radius: 12px; border: 1px solid #eee; }
+        ol.vars { margin: 15px 0 0 20px; padding: 0; }
+        ol.vars li { margin: 10px 0; line-height: 1.5; color: var(--gray); }
+
+        /* Tables */
+        .ref-table { width: 100%; border-collapse: collapse; font-size: 13px; 
+            margin-top: 20px; 
+            display: block;      /* Allows the table to scroll internally */
+            overflow-x: auto;    /* Table scrolls, NOT the whole page */
+            /*white-space: nowrap; /* Prevents text from forcing width */
+            -webkit-overflow-scrolling: touch;
+        }
+        .ref-table th { text-align: left; border-bottom: 2px solid #ddd; padding: 10px; color: var(--purple); }
+        .ref-table td { padding: 10px; border-bottom: 1px solid #eee; vertical-align: top; line-height: 1.4; }
+        .ref-section-title { font-weight: bold; margin-bottom: 10px; display: block; }
+
+        @media (max-width: 1024px) {
+            .top-nav { padding: 20px 25px; }
+            .logo-spp { height: 45px; }
+            .hero-body { padding-bottom: 80px; }
+            .main-column { width: 100%; padding: 20px 25px 0px; text-align: center; height: auto; max-height: none; box-sizing: border-box;}
+            .map-container { position: relative; width: 100%; height: auto; padding: 0 20px; order: -1; bottom: 0; }
+            .map-container img { max-height: 40vh; }
+            .footer-actions { flex-direction: column; align-items: center; gap: 15px; }
+            .btn-spp { width: 100%; max-width: 300px; }
+            .credit-footer { position: relative; bottom: 30px; left: 0; text-align: center; padding: 30px 25px; width: 100%; box-sizing: border-box; }
+            .close-about { top: 20px; right: 20px; }
+            .spp-container { padding: 60px 20px 150px 20px; }
+            #go-top-btn { left: 20px; bottom: 20px; }
+        }
+
+        @media (max-height: 700px) and (max-width: 1024px) {
+            .main-column { padding-top: 10px; }
+            .map-container img { max-height: 30vh; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Hero Section -->
+    <section id="hero-layer" class="layer">
+        <div class="top-nav">
+            <img src="SPP.svg" class="logo-spp" alt="SPP Logo" onclick="location.reload()">
+            <div class="nav-links">
+                <span onclick="toggleAbout()">About</span>
+                <span onclick="window.location.href='mailto:subnationalpoliticsproject@gmail.com'">Contact</span>
+            </div>
+        </div>
+
+        <div class="hero-body">
+            <div class="map-container">
+                <img src="map_web.svg" alt="SPP Map Visualization">
+            </div>
+
+            <div class="main-column">
+                <div class="text-overlay">
+                    <h2>
+                        Systematic, transparent, and publicly accessible data on 
+                        <strong>subnational political institutions and electoral outcomes</strong> 
+                        across Latin America.
+                    </h2>
+                </div>
+
+                <div class="footer-actions">
+                    <button class="btn-spp" onclick="toggleHero()">Explore Data</button>
+                    <button class="btn-spp btn-outline" onclick="triggerDownload()">Download Data</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="credit-footer">
+            Designed by <a href="https://www.linkedin.com/in/felipesotojorquera/" target="_blank">Felipe Soto Jorquera</a>
+        </div>
+
+        <div class="drawer-pull" onclick="toggleHero()"></div>
+
+        <!-- About Section Layer -->
+    <section id="about-layer" class="layer">
+        <div class="close-about" onclick="toggleAbout()"><i class="fas fa-times"></i></div>
+        
+        <div class="spp-container">
+            <p class="kicker">About</p>
+
+            <!-- 1) About SPP -->
+            <details class="card" open>
+                <summary>
+                    <span class="card-title">About SPP</span>
+                    <i class="fas fa-chevron-down chev"></i>
+                </summary>
+                <div class="card-body">
+                    <p class="spp-text">
+                        <strong>The Subnational Politics Project (SPP)</strong> is a collaborative initiative dedicated to compiling, generating, and disseminating systematic, transparent, and publicly accessible data on subnational political institutions, processes, and electoral outcomes across Latin America.
+                    </p>
+                    <p class="spp-text">
+                        The SPP’s central goal is to build a comprehensive and standardized data infrastructure that enables both detailed within-country analysis and robust cross-national comparisons of subnational political dynamics.
+                    </p>
+                    <p class="spp-text">
+                        By providing consistent, high-quality, and spatially disaggregated longitudinal data, the SPP seeks to advance scholarly and policy-oriented research on the political foundations and consequences of territorial inequality in Latin America.
+                    </p>
+                    <p class="spp-text">
+                        This data infrastructure will support empirical work on a wide range of topics, including federalism, decentralization, subnational democracy and authoritarianism, party competition, electoral accountability, territorial governance, among others.
+                    </p>
+                </div>
+            </details>
+
+            <!-- 2) People Behind SPP -->
+            <details class="card">
+                <summary>
+                    <span class="card-title">People Behind SPP</span>
+                    <i class="fas fa-chevron-down chev"></i>
+                </summary>
+                <div class="card-body">
+                    <div class="team-grid">
+                        <div class="team-card">
+                            <a href="https://agustinagiraudy.com" target="_blank">
+                                <img src="agustina.webp" alt="Agustina Giraudy" class="team-avatar" onerror="this.src='https://via.placeholder.com/120'">
+                            </a>
+                            <p class="collab-name">Agustina Giraudy</p>
+                            <div>
+                                <span class="badge badge-pi">Principal Investigator</span>
+                                <a href="https://www.linkedin.com/in/agustina-giraudy-72a3b81a9/" target="_blank" class="lnk-btn" aria-label="LinkedIn">in</a>
+                            </div>
+                            <p class="pi-affil">American University / Tecnológico de Monterrey</p>
+                        </div>
+
+                        <div class="team-card">
+                            <a href="https://www.furdinez.com/" target="_blank">
+                                <img src="francisco.webp" alt="Francisco Urdinez" class="team-avatar" onerror="this.src='https://via.placeholder.com/120'">
+                            </a>
+                            <p class="collab-name">Francisco Urdinez</p>
+                            <div>
+                                <span class="badge badge-collab">Collaborator</span>
+                                <a href="https://www.linkedin.com/in/francisco-urdinez-a8061813/" target="_blank" class="lnk-btn" aria-label="LinkedIn">in</a>
+                            </div>
+                            <p class="pi-affil">Universidad Católica de Chile</p>
+                        </div>
+
+                        <div class="team-card">
+                            <a href="https://guadagonzalez.com/" target="_blank">
+                                <img src="guadalupe.webp" alt="Guadalupe González" class="team-avatar" onerror="this.src='https://via.placeholder.com/120'">
+                            </a>
+                            <p class="collab-name">Guadalupe González</p>
+                            <div>
+                                <span class="badge badge-collab">Collaborator</span>
+                                <a href="https://www.linkedin.com/in/guadag12/" target="_blank" class="lnk-btn" aria-label="LinkedIn">in</a>
+                            </div>
+                            <p class="pi-affil">University of Maryland, College Park</p>
+                        </div>
+
+                        <div class="team-card">
+                            <a href="https://www.linkedin.com/in/felipesotojorquera/" target="_blank">
+                                <img src="felipe.webp" alt="Felipe Soto Jorquera" class="team-avatar" onerror="this.src='https://via.placeholder.com/120'">
+                            </a>
+                            <p class="collab-name">Felipe Soto Jorquera</p>
+                            <div>
+                                <span class="badge badge-collab">Collaborator</span>
+                                <a href="https://www.linkedin.com/in/felipesotojorquera/" target="_blank" class="lnk-btn" aria-label="LinkedIn">in</a>
+                            </div>
+                            <p class="pi-affil">Hertie School, Berlin</p>
+                        </div>
+
+                        <div class="team-card">
+                            <a href="https://serhuertas.github.io/" target="_blank">
+                                <img src="sergio.webp" alt="Sergio Huertas Hernández" class="team-avatar" onerror="this.src='https://via.placeholder.com/120'">
+                            </a>
+                            <p class="collab-name">Sergio Huertas Hernández</p>
+                            <div>
+                                <span class="badge badge-r_assist">Research Assistant</span>
+                                <a href="https://www.linkedin.com/in/sergio-huertas-hern%C3%A1ndez/" target="_blank" class="lnk-btn" aria-label="LinkedIn">in</a>
+                            </div>
+                            <p class="pi-affil">Universidad Católica de Chile</p>
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <!-- 3) About Databases -->
+            <details class="card">
+                <summary>
+                    <span class="card-title">About SPP Databases</span>
+                    <i class="fas fa-chevron-down chev"></i>
+                </summary>
+                <div class="card-body">
+                    <p class="spp-text"><strong>Databases’ Structure</strong></p>
+                    <p class="spp-text">The Subnational Politics Project (SPP) is made up of different databases. Each database employs a country–state–year structure, with observations at the subnational unit level for each electoral year.</p>
+                    <div class="figure">
+                        <img src="databases_spp.svg" alt="Databases Structure Diagram" onerror="this.src='https://via.placeholder.com/800x400?text=SPP+Databases+Structure'">
+                    </div>
+                    <hr class="spp-hr">
+                    <p class="spp-text"><strong>Variable Information</strong></p>
+                    <p class="spp-text">The databases in the Subnational Politics Project divide variables into the following types:</p>
+                    <ol class="vars">
+                        <li><strong>Identifier Variables:</strong> Data identifying country names and codes, state names and codes, region names, and time periods.</li>
+                        <li><strong>Executive Branch Variables:</strong> Data on national and subnational executive branches, such as length of term, incumbent party, years in office, etc.</li>
+                        <li><strong>Electoral Variables:</strong> Data on subnational executive and legislative elections, including legislatures’ composition.</li>
+                        <li><strong>Indices:</strong> Data generated by adding and combining variables, or creating cumulative scales.</li>
+                    </ol>
+                    <div class="figure">
+                        <img src="variables_database.svg" alt="Variable Types Diagram" onerror="this.src='https://via.placeholder.com/800x400?text=SPP+Variable+Types'">
+                    </div>
+                </div>
+            </details>
+
+            <!-- 4) References -->
+            <details class="card">
+                <summary>
+                    <span class="card-title">References</span>
+                    <i class="fas fa-chevron-down chev"></i>
+                </summary>
+                <div class="card-body">
+                    <span class="ref-section-title">Suggested Citation for Codebook</span>
+                    <p class="spp-text" style="font-size: 13px;">
+                        Giraudy, Agustina; Gonzalez, Guadalupe Andrea; Urdinez, Francisco, 2025, “Codebook: Subnational Politics Project (SPP) (v. 1)”, 
+                        <a href="https://doi.org/10.17605/OSF.IO/H96FD" target="_blank" class="spp-link">https://doi.org/10.17605/OSF.IO/H96FD</a>
+                    </p>
+                    <hr class="spp-hr">
+                    <table class="ref-table">
+                        <thead>
+                            <tr>
+                                <th>Database Name</th>
+                                <th>Abbr.</th>
+                                <th>Suggested Citation</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Subnational Executive Database</td>
+                                <td>SED</td>
+                                <td>Giraudy, Agustina, Guadalupe Andrea Gonzalez, Sergio Huertas-Hernández, and Francisco Urdinez. 2025. “Subnational Executive Database (SED) (v. 1).” Subnational Politics Project. <a href="https://doi.org/doi:10.7910/DVN/1D3P3J" target="_blank" class="spp-link">https://doi.org/doi:10.7910/DVN/1D3P3J</a></td>
+                            </tr>
+                            <tr>
+                                <td>Subnational Executive Elections Database</td>
+                                <td>SEED</td>
+                                <td>Giraudy, Agustina, Guadalupe Andrea Gonzalez, Sergio Huertas-Hernández, and Francisco Urdinez. 2025. “Subnational Executive Elections Database (SEED) (v. 1).” Subnational Politics Project. <a href="https://doi.org/doi:10.7910/DVN/UPOWMW" target="_blank" class="spp-link">https://doi.org/doi:10.7910/DVN/UPOWMW</a></td>
+                            </tr>
+                            <tr>
+                                <td>Subnational Legislative Elections Database</td>
+                                <td>SLED</td>
+                                <td>Giraudy, Agustina, and Guadalupe Andrea Gonzalez. 2025. “Subnational Legislative Elections Database (SLED) (v. 1).” Subnational Politics Project. <a href="https://doi.org/doi:10.7910/DVN/084FXF" target="_blank" class="spp-link">https://doi.org/doi:10.7910/DVN/084FXF</a></td>
+                            </tr>
+                            <tr>
+                                <td>Subnational Democracy Indices</td>
+                                <td>SDI</td>
+                                <td>Giraudy, Agustina. 2025. “Subnational Democracy Indices (SDI) (v. 1).” Subnational Politics Project. <a href="https://doi.org/doi:10.7910/DVN/7TNLBW" target="_blank" class="spp-link">https://doi.org/doi:10.7910/DVN/7TNLBW</a></td>
+                            </tr>
+                            <tr>
+                                <td>Capital Federal & Tierra del Fuego Legislatures Database</td>
+                                <td>CFTDFLD</td>
+                                <td>Giraudy, Agustina, and Guadalupe Andrea Gonzalez. 2025. “Capital Federal & Tierra Del Fuego Legislatures Database (CFTDFLD) (v. 1).” Subnational Politics Project. <a href="https://doi.org/doi:10.7910/DVN/AJJLHX" target="_blank" class="spp-link">https://doi.org/doi:10.7910/DVN/AJJLHX</a></td>
+                            </tr>
+                            <tr>
+                                <td>National Executive Database</td>
+                                <td>NED</td>
+                                <td>Giraudy, Agustina, Guadalupe Andrea Gonzalez, Sergio Huertas-Hernández, and Francisco Urdinez. 2025. “National Executive Database (NED) (v. 1).” Subnational Politics Project. <a href="https://doi.org/doi:10.7910/DVN/HNKQUH" target="_blank" class="spp-link">https://doi.org/doi:10.7910/DVN/HNKQUH</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        </div>
+    </section>
+
+    <!-- Animated Go Top Button (Placed outside layers to fix position) -->
+    <button id="go-top-btn" onclick="scrollToAboutTop()">
+        <svg class="svgIcon" viewBox="0 0 384 512">
+            <path d="M214.6 41.4c-12.5-12.5-32.8-12.5-45.3 0l-160 160c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L160 141.2V448c0 17.7 14.3 32 32 32s32-14.3 32-32V141.2L329.4 246.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3l-160-160z"></path>
+        </svg>
+    </button>
+
+    </section>
+
+    
+
+    <!-- Dashboard Iframe Area -->
+    <div class="dash-container">
+        <iframe src="https://fsotoj-spp-v3.hf.space" title="SPP Dashboard"></iframe>
+    </div>
+
+    <script>
+        const aboutLayer = document.getElementById('about-layer');
+        const goTopBtn = document.getElementById('go-top-btn');
+
+        function toggleAbout() {
+            const aboutLayer = document.getElementById('about-layer');
+            const goTopBtn = document.getElementById('go-top-btn');
+            
+            const isVisible = aboutLayer.classList.toggle('visible');
+            
+            // Prevent scrolling the hero background when About is open
+            document.getElementById('hero-layer').style.overflow = isVisible ? 'hidden' : 'visible';
+
+            // Reset scroll position when opening/closing
+            if (isVisible) {
+                aboutLayer.scrollTop = 0;
+            } else {
+                goTopBtn.classList.remove('show');
+            }
+        }
+
+        function toggleHero() {
+            const hero = document.getElementById('hero-layer');
+            const aboutLayer = document.getElementById('about-layer');
+            
+            // If we are sliding the hero up to show the dash, 
+            // we should make sure the About layer is closed for next time.
+            if (!hero.classList.contains('hidden')) {
+                aboutLayer.classList.remove('visible');
+            }
+            
+            hero.classList.toggle('hidden');
+        }
+
+        function scrollToAboutTop() {
+            aboutLayer.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function triggerDownload() {
+            window.open('https://dataverse.harvard.edu/dataverse/spp', '_blank');
+        }
+
+        // Show/Hide Go Top Button based on scroll position of the About Layer
+        aboutLayer.addEventListener('scroll', () => {
+            // Only show if the about layer is visible and scrolled down
+            if (aboutLayer.classList.contains('visible') && aboutLayer.scrollTop > 300) {
+                goTopBtn.classList.add('show');
+            } else {
+                goTopBtn.classList.remove('show');
+            }
+        });
+
+        document.querySelector('.logo-spp').addEventListener('click', () => {
+            if (aboutLayer.classList.contains('visible')) {
+                toggleAbout();
+            }
+        });
+    </script>
+</body>
+</html>
