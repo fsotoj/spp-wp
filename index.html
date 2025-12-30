@@ -161,6 +161,7 @@
         .text-overlay strong { font-weight: 700; }
 
         .footer-actions {
+            padding: 40px 0 0 0;
             display: flex;
             justify-content: flex-start; 
             gap: 30px;
@@ -178,13 +179,13 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             transition: transform 0.2s ease, background 0.3s ease;
         }
-        .btn-spp:hover { background-color: #f0951a; transform: translateY(-2px); }
+        .btn-spp:hover { background-color: var(--purple); transform: translateY(-2px); }
         .btn-outline { background-color: transparent; color: var(--orange); border: 2px solid var(--orange); box-shadow: none; }
 
         /* Map */
         .map-container {
             position: absolute;
-            right: 0; bottom: 10%;
+            right: 20px; bottom: 10px;
             width: 50%; height: 100%;
             display: flex; align-items: center; justify-content: center;
             pointer-events: none; 
@@ -192,6 +193,7 @@
         .map-container img {
             width: 100%; height: auto; max-height: 90vh; 
             object-fit: contain; animation: mapFloat 6s ease-in-out infinite;
+            pointer-events: auto; cursor: pointer; transition: filter 0.2s ease;
         }
 
         @keyframes mapFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
@@ -387,7 +389,7 @@
             .map-container img { max-height: 40vh; }
             .footer-actions { flex-direction: column; align-items: center; gap: 15px; }
             .btn-spp { width: 100%; max-width: 300px; }
-            .credit-footer { position: relative; bottom: 30px; left: 0; text-align: center; padding: 30px 25px; width: 100%; box-sizing: border-box; }
+            .credit-footer { position: relative; bottom: 60px; left: 0; text-align: center; padding: 30px 25px; width: 100%; box-sizing: border-box; }
             .close-about { top: 20px; right: 20px; }
             .spp-container { padding: 60px 20px 150px 20px; }
             #go-top-btn { left: 20px; bottom: 20px; }
@@ -414,7 +416,7 @@
 
         <div class="hero-body">
             <div class="map-container">
-                <img src="map_web.svg" alt="SPP Map Visualization">
+                <img src="map_web.svg" alt="SPP Map Visualization" onclick="animateMap()">
             </div>
 
             <div class="main-column">
@@ -673,6 +675,30 @@
             }
             
             hero.classList.toggle('hidden');
+        }
+
+        let mapClickCount = 0;
+
+        function animateMap() {
+            const mapImg = document.querySelector('.map-container img');
+            const sequence = [
+                'drop-shadow(0 0 10px var(--orange))',
+                'drop-shadow(0 0 10px var(--purple))',
+                'drop-shadow(0 0 10px var(--magenta))'
+            ];
+            
+            if (mapClickCount < sequence.length) {
+                mapImg.style.filter = sequence[mapClickCount];
+                mapClickCount++;
+
+                if (mapClickCount === sequence.length) {
+                    setTimeout(() => {
+                        mapImg.style.filter = '';
+                        mapClickCount = 0;
+                        toggleHero();
+                    }, 500);
+                }
+            }
         }
 
         function scrollToAboutTop() {
