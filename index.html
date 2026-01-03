@@ -661,9 +661,9 @@
         function animateMap() {
             const mapImg = document.querySelector('.map-container img');
             const sequence = [
-                'drop-shadow(0 0 10px var(--orange))',
                 'drop-shadow(0 0 10px var(--purple))',
-                'drop-shadow(0 0 10px var(--magenta))'
+                'drop-shadow(0 0 10px #EF476F)',
+                'drop-shadow(0 0 10px var(--orange))'
             ];
             
             if (mapClickCount < sequence.length) {
@@ -675,7 +675,7 @@
                         mapImg.style.filter = '';
                         mapClickCount = 0;
                         toggleHero();
-                    }, 500);
+                    }, 250);
                 }
             }
         }
