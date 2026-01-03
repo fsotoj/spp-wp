@@ -677,6 +677,17 @@
             hero.classList.toggle('hidden');
         }
 
+        // Toggle Hero from iframe message
+        window.addEventListener("message", (event) => {
+            // Security: Only listen to messages from Hugging Face
+            if (!event.origin.includes("hf.space")) return;
+        
+            // If the message matches our trigger, run the function
+            if (event.data === "trigger_toggleHero") {
+                toggleHero();
+            }
+        }, false);        
+
         let mapClickCount = 0;
 
         function animateMap() {
