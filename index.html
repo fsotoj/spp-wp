@@ -198,15 +198,44 @@
 
         @keyframes mapFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
 
-        /* Credit Footer */
-        .credit-footer {
-            position: absolute;
-            bottom: 30px; left: 60px;
-            font-size: 0.7rem; color: var(--gray);
-            z-index: 1002; opacity: 0.8;
+        /* Remove the absolute positioning from the individual items */
+        .credit-footer, .logo-tec {
+            position: static; /* This cancels out the absolute positioning */
+            width: auto;      /* Let them take natural width */
         }
+
+        .credit-footer {         
+            font-size: 0.7rem;
+            color: var(--gray);
+            z-index: 1002;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+        
         .credit-footer a { color: var(--magenta); text-decoration: none; font-weight: bold; }
         .credit-footer a:hover { color: var(--purple); text-decoration: underline; }
+
+        .bottom-bar {
+            position: fixed; /* Or absolute, depending on if you want it to stay while scrolling */
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between; /* Pushes one to the left, one to the right */
+            align-items: center;
+            padding: 20px 60px; /* Matching your original desktop spacing */
+            box-sizing: border-box;
+            z-index: 1002;
+            pointer-events: none; /* Allows you to click things 'behind' the empty space */
+        }
+
+        /* Re-enable clicks for the actual content */
+        .credit-footer, .logo-tec {
+            pointer-events: auto;
+        }
+        .logo-tec img {
+            height: 40px; width: auto;
+        }
 
         /* --- ABOUT LAYER STYLING --- */
         .spp-container { 
@@ -216,9 +245,6 @@
         }
         .kicker { color: var(--orange); text-transform: uppercase; letter-spacing: 0.12em; font-size: 24px; margin: 0 0 30px 0; font-weight: bold; }
         
-        /*
-        .close-about { position: absolute; top: 40px; right: 60px; font-size: 1.5rem; cursor: pointer; color: var(--gray); z-index: 1200; }
-        */
 
         /* --- UPDATED GO TOP BUTTON (Fixed Bottom Left) --- */
         #go-top-btn {
@@ -359,9 +385,26 @@
             .map-container img { max-height: 40vh; }
             .footer-actions { flex-direction: column; align-items: center; gap: 15px; }
             .btn-spp { width: 100%; max-width: 300px; }
-            .credit-footer { position: relative; bottom: 60px; left: 0; text-align: center; padding: 30px 25px; width: 100%; box-sizing: border-box; }
+            .bottom-bar {
+                    padding: 15px 25px; /* Tighter padding for mobile */
+                }
+                
+            .credit-footer {
+                font-size: 0.6rem; /* Slightly smaller to prevent crowding */
+                max-width: 60%;    /* Prevents text from hitting the logo */
+            }
+
+            .logo-tec img {
+                height: 30px; /* Scale logo down slightly for small screens */
+            }
+        
+            
+        
+            /* Add this to your container to ensure the footer items stack nicely */
+            .spp-container {
+                padding: 60px 20px 40px 20px; /* Reduced bottom padding since footer is now relative */
+                            }
             .close-about { top: 20px; right: 20px; }
-            .spp-container { padding: 60px 20px 150px 20px; }
             #go-top-btn { left: 20px; bottom: 20px; }
         }
 
@@ -405,9 +448,14 @@
             </div>
         </div>
 
-        <div class="credit-footer">
-            Designed by <a href="https://www.linkedin.com/in/felipesotojorquera/" target="_blank">Felipe Soto Jorquera</a>
-        </div>
+        <footer class="bottom-bar">
+            <div class="credit-footer">
+                Designed by <a href="https://www.linkedin.com/in/felipesotojorquera/" target="_blank">Felipe Soto Jorquera</a>
+            </div>
+            <div class="logo-tec">
+                <img src="EscuelaCienciasSocialesyGobierno_Horizontal_Negro.webp" alt="Tecnológico de Monterrey Logo" >
+            </div>
+        </footer> 
 
         <!-- About Section Layer -->
     <section id="about-layer" class="layer">
