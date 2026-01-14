@@ -655,10 +655,39 @@
     
 
     <!-- Dashboard Iframe Area -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2D6B3PWVGG"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-2D6B3PWVGG');
+    </script>
+
+    <script>
+    window.addEventListener("message", function(event) {
+        // SECURITY: Ensure the message comes from your HF space
+        if (event.origin !== "https://fsotoj-spp-v3.hf.space") return;
+
+        // CHECK: Is this one of our tracking events?
+        if (event.data && event.data.type === 'SHINY_GA_EVENT') {
+        const payload = event.data.payload;
+        
+        if (typeof gtag === "function") {
+            // This fires the event on the parent domain
+            gtag.apply(null, payload);
+            
+            // Helpful for debugging: remove this once verified
+            console.log("Parent received Shiny event:", payload[1], payload[2]);
+        }
+        }
+    }, false);
+    </script>
+
     <div class="dash-container">
-        <iframe src="https://fsotoj-spp-v3.hf.space" title="SPP Dashboard"></iframe>
+        <iframe src="https://fsotoj-spp-v3.hf.space" title="SPP Dashboard" width="100%" height="800px"></iframe>
     </div>
 
+    <!---scripts area-->
     <script>
         const aboutLayer = document.getElementById('about-layer');
         const goTopBtn = document.getElementById('go-top-btn');
