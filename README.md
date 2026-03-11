@@ -34,7 +34,7 @@ Data can be explored via the dashboard or downloaded directly from the [Harvard 
 - **Agustina Giraudy** (American University / Tecnológico de Monterrey) - Principal Investigator
 - **Francisco Urdinez** (Universidad Católica de Chile) - Collaborator
 - **Guadalupe González** (University of Maryland, College Park) - Collaborator
-- **Felipe Soto Jorquera** (Hertie School, Berlin) - Collaborator & Designer
+- **Felipe Soto Jorquera** (Hertie School, Berlin) - Collaborator
 - **Sergio Huertas Hernández** (Universidad Católica de Chile) - Research Assistant
 
 ## Usage
